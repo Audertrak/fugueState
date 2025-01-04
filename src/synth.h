@@ -88,7 +88,7 @@ static inline void arena_init( SynthArena *arena, size_t size ) {
     arena->buffer = (uint8_t *) malloc( size );
     arena->size   = size;
     arena->used   = 0;
-#ifdef defined( __linux__ ) || defined( __APPLE__ )
+#if defined( __linux__ ) || defined( __APPLE__ )
     pthread_mutex_init( &arena->mutex, NULL );
 #elif defined( _WIN32 )
     InitializeCriticalSection( &arena->mutex );
@@ -101,7 +101,7 @@ static inline void arena_init( SynthArena *arena, size_t size ) {
  * @param arena [TODO:parameter]
  */
 static inline void arena_lock( SynthArena *arena ) {
-#ifdef defined( __linux__ ) || defined( __APPLE__ )
+#if defined( __linux__ ) || defined( __APPLE__ )
     pthread_mutex_lock( &arena->mutex );
 #elif defined( _WIN32 )
     EnterCriticalSection( &arena->mutex );
@@ -114,7 +114,7 @@ static inline void arena_lock( SynthArena *arena ) {
  * @param arena [TODO:parameter]
  */
 static inline void arena_unlock( SynthArena *arena ) {
-#ifdef defined( __linux__ ) || defined( __APPLE__ )
+#if defined( __linux__ ) || defined( __APPLE__ )
     pthread_mutex_unlock( &arena->mutex );
 #elif defined( _WIN32 )
     LeaveCriticalSection( &arena->mutex );
