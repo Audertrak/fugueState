@@ -25,18 +25,52 @@
  *		[] lfo(s)
  *		[] ADSR envelope
  */
+
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-const float    PI            = 3.14159265358979323846f;
-const float    REF_FREQ      = 440.0f;
-const float    REF_INDEX     = 69.0f;
+const float PI        = 3.14159265358979323846f;
+const float REF_FREQ  = 440.0f;
+const float REF_INDEX = 69.0f;
 
 // to be used for variable quality selection
-const int      BitDepth[3]   = { 16, 24, 32 };
-const int      SampleRate[8] = { 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000 };
+typedef struct {
+    const int depth;
+} BitDepth;
+
+typedef struct {
+    const int hz;
+} SampleRate;
+
+BitDepth   BitDepths[3]   = { 16, 24, 32 };
+SampleRate SampleRates[8] = { 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000 };
+
+/*********
+ * NOTES *
+ *********/
+// parameters of note object
+typedef struct {
+    uint8_t index;
+    int     octave;
+    float   frequency;
+    int     sampleCount;
+} NoteData;
+
+// array of notes
+NoteData Notes[128];
+
+// when called, generates data for each note in the range
+void     Populate_Notes( int sampleRate ) {
+    for ( int i = 0; i < 128; ++i ) {
+        float exp          = ( (float) i - REF_INDEX ) / 12.0f;
+        Notes[i].index     = i;
+        Notes[i].octave    = i / 12;
+        Notes[i].frequency = REF_FREQ * powf( 2.0f, exp );
+        Notes[i].sampleCount   = ( (float) SampleRates[sampleRate].hz / Notes[i].frequency ) + 1;
+    }
+}
 
 /*************
  * WAVEFORMS *
@@ -45,7 +79,7 @@ const int      SampleRate[8] = { 44100, 48000, 88200, 96000, 176400, 192000, 352
 typedef double ( *WaveformFormula )( double x );
 
 // parameters of a waveform
-typedef struct Waveform {
+typedef struct {
     const char     *name;
     WaveformFormula formula;
 } Waveform;
@@ -60,53 +94,61 @@ double   SawWave( double x ) { return x; }
 
 // list of available waveforms
 Waveform waveforms[] = {
-  {"Sine",     SineWave  },
-  {"Square",   SquareWave},
-  {"Sawtooth", SawWave   }
+  {"Sine",     SineWave    },
+  {"Square",   SquareWave  },
+  {"Triangle", TriangleWave},
+  {"Sawtooth", SawWave     }
 };
 
 const int num_waveforms =
   sizeof( waveforms ) / sizeof( Waveform );    // QUESTION: what is this? why is it necessary?
 
-/********************
- * END OF WAVEFORMS *
- ********************/
-
-// parameters of note object
-typedef struct NoteData {
-    uint8_t index[128];
-    int     octave[128];
-    float   frequency[128];
-    int     samples[128];
-} NoteData;
-
+/***********
+ * SAMPLES *
+ ***********/
 // parameters of a waveform sample; struct represents a single
-typedef struct Sample {
+typedef struct {
     // QUESTION: pointers used for time and amplitude due to non uniform values? What would the
     // implication be of using arrays similar to NoteData, accepting that some notes would have
     // empty values
-    float *time;
-    int   *amplitude;
-    int    length;
+    float time;
+    int   amplitude;
 } Sample;
 
+// function that creates a single sample
+void Sample_Create (NoteData index, Sample time, Waveform formula ) {
+	Sample.amplitude = 0; // f(amplitude) = time(formula)
+}
+
+// function that creates an array of samples by calling createSample while i < sampleCount
+void Sample_Note () {}
+
+// function that creates an array of sampled notes while i < 128
+void Sample_Wave () {}
+
+// function that creates an array of sample notes while i < num_waveforms
+void Sample_DB () {}
+
 // when called, generates data for each note in the range
-void Populate_Notes( struct NoteData *note ) {
-    for ( int i = 0; i < 128; ++i ) {
+void waveformSamples( void ) {
+    for ( int i = 0; i < 4; ++i ) {
+		wave = waveforms[i];
+
         float exp          = ( (float) i - REF_INDEX ) / 12.0f;
-        note->index[i]     = i;
-        note->octave[i]    = i / 12;
-        note->frequency[i] = REF_FREQ * powf( 2.0f, exp );
-        note->samples[i]   = ( SampleRate[0] / note->frequency[i] ) + 1;
+        Notes[i].index     = i;
+        Notes[i].octave    = i / 12;
+        Notes[i].frequency = REF_FREQ * powf( 2.0f, exp );
+        Notes[i].samples   = ( (float) SampleRates[sampleRate].hz / Notes[i].frequency ) + 1;
     }
 }
 
 // when called, generates samples for a given note
-void Populate_Sample( struct Sample *sample, const struct NoteData *note, uint8_t note_index ) {
-    float frequency         = note->frequency[note_index];
+void Populate_Sample( Sample *sample, NoteData *note, uint8_t note_index, SampleRate *hz ) {
+    int   i                 = note_index;
+    float frequency         = Notes[i].frequency;
     float angular_frequency = 2.0f * PI * frequency;
-    float sample_period     = 1.0f / SampleRate[0];
-    int   num_samples       = note->samples[note_index];
+    float sample_period     = 1.0f / SampleRates->hz;
+    int   num_samples       = Notes[i].samples;
 
     // QUESTION: is this explicit memory management required due to the dynamic data/use of pointers
     // in the sample struct?
@@ -124,12 +166,23 @@ void Populate_Sample( struct Sample *sample, const struct NoteData *note, uint8_
 }
 
 // clean up on exit
-void Free_Sample( struct Sample *sample ) {
+void Free_Sample( Sample *sample ) {
     free( sample->time );
     free( sample->amplitude );
     sample->time      = NULL;
     sample->amplitude = NULL;
     sample->length    = 0;
+}
+
+/************
+ * PLAYBACK *
+ ************/
+void Playback() {}
+
+int  Playback_samples( Sample time, Sample length, int signal ) {
+    if ( signal == 1 ) {
+        return Sample.amplitude;
+    } else return NULL;
 }
 
 int main() {
@@ -138,6 +191,14 @@ int main() {
     FILE           *csv_file;
     int             userNote;
     char            fileName[100];
+
+    /*
+     *	playback function: accepts a note and returns the amplitude value synced to the sample rate
+     *		[] need to know what time it is
+     *		[] need to know what the return interval is (while play = true, return amplitude
+     *where a =
+     *
+     */
 
     return 0;
 }
