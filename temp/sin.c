@@ -64,11 +64,11 @@ NoteData Notes[128];
 // when called, generates data for each note in the range
 void     Populate_Notes( int sampleRate ) {
     for ( int i = 0; i < 128; ++i ) {
-        float exp          = ( (float) i - REF_INDEX ) / 12.0f;
-        Notes[i].index     = i;
-        Notes[i].octave    = i / 12;
-        Notes[i].frequency = REF_FREQ * powf( 2.0f, exp );
-        Notes[i].sampleCount   = ( (float) SampleRates[sampleRate].hz / Notes[i].frequency ) + 1;
+        float exp            = ( (float) i - REF_INDEX ) / 12.0f;
+        Notes[i].index       = i;
+        Notes[i].octave      = i / 12;
+        Notes[i].frequency   = REF_FREQ * powf( 2.0f, exp );
+        Notes[i].sampleCount = ( (float) SampleRates[sampleRate].hz / Notes[i].frequency ) + 1;
     }
 }
 
@@ -116,23 +116,23 @@ typedef struct {
 } Sample;
 
 // function that creates a single sample
-void Sample_Create (NoteData index, Sample time, Waveform formula ) {
-	Sample.amplitude = 0; // f(amplitude) = time(formula)
+void Sample_Create( NoteData index, Sample time, Waveform formula ) {
+    Sample.amplitude = 0;    // f(amplitude) = time(formula)
 }
 
 // function that creates an array of samples by calling createSample while i < sampleCount
-void Sample_Note () {}
+void Sample_Note() {}
 
 // function that creates an array of sampled notes while i < 128
-void Sample_Wave () {}
+void Sample_Wave() {}
 
 // function that creates an array of sample notes while i < num_waveforms
-void Sample_DB () {}
+void Sample_DB() {}
 
 // when called, generates data for each note in the range
 void waveformSamples( void ) {
     for ( int i = 0; i < 4; ++i ) {
-		wave = waveforms[i];
+        wave               = waveforms[i];
 
         float exp          = ( (float) i - REF_INDEX ) / 12.0f;
         Notes[i].index     = i;
